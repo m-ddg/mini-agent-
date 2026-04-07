@@ -1,0 +1,29 @@
+from .base import BaseLLMClient
+from ..schema import Message, LLMResponse
+from ..tools import BaseTool
+from typing import Any
+
+class OpenAIResponsesClient(BaseLLMClient):
+    """ 处理responses api格式的OpenAI适配客户端 """
+
+    def convert_message(
+            self,
+            messages: list[Message]
+    ) -> tuple[str | None, dict[str, Any]]:
+
+        if not messages:
+            return None
+
+        input_lst = []
+        sys_prompt = ''
+
+        for m in messages:
+            if m.role == 'system':
+                sys_prompt = m.content
+            elif m.role == 'user':
+                input_lst.append(
+                    {
+                    'role': m.role,
+                    'content': m.content,
+                }
+                )
