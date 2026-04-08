@@ -1,29 +1,61 @@
 from .base import BaseLLMClient
 from ..schema import Message, LLMResponse
 from ..tools import BaseTool
-from typing import Any
+from typing import Any, Literal
+import os
+from dotenv import load_dotenv
+from openai import AsyncClient
+
+load_dotenv()
+
+
 
 class OpenAIResponsesClient(BaseLLMClient):
     """ 处理responses api格式的OpenAI适配客户端 """
 
+    # 支持的模型名称
+    _ModelName = Literal['gpt-4o', 'gpt-4o-mini']
+
+    def __init__(
+            self,
+            api_key: str | None = None,
+            base_url: str | None = None,
+            model: _ModelName | None = None
+    ):
+        api_key = api_key or os.getenv('OPENAI_API_KEY')
+        base_url = base_url or os.getenv('OPENAI_API_URL', "https://openai.com/api/v3/")
+        model = model or "gpt-4o"
+
+        super().__init__(api_key, base_url, model)
+
+
     def convert_message(
             self,
             messages: list[Message]
-    ) -> tuple[str | None, dict[str, Any]]:
+    ) -> tuple[str | None, list[dict[str, Any]]]:
 
         if not messages:
-            return None
+            raise ValueError('messages不能为空')
 
-        input_lst = []
-        sys_prompt = ''
+        system_prompt = ''
+        input_mesages = []
 
-        for m in messages:
-            if m.role == 'system':
-                sys_prompt = m.content
-            elif m.role == 'user':
-                input_lst.append(
-                    {
-                    'role': m.role,
-                    'content': m.content,
-                }
-                )
+        for msg in messages:
+            match msg.role:
+                case 'system':
+                    system_promt = msg.role
+
+                case 'user':
+                    temp_user_dict = {
+                        "role": "user",
+                        "content": msg.content
+                    }
+                    input_mesages.append(temp_user_dict)
+
+                case 'assistant':
+                    temp_assistant_dict = {
+                        "role": "assisatant",
+                        "content": msg.content
+                    }
+
+        return system_prompt, input_mesages
