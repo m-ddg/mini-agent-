@@ -6,7 +6,12 @@ from abc import ABC, abstractmethod
 class BaseLLMClient(ABC):
     """ LLM Client的基类 """
 
-    def __init__(self, api_key: str, base_url: str, model: str):
+    def __init__(
+            self,
+            api_key: str | None = None,
+            base_url: str | None = None,
+            model: str | None = None,
+    ):
         self.api_key = api_key
         self.base_url = base_url
         self.model = model
@@ -33,10 +38,10 @@ class BaseLLMClient(ABC):
     def prepare_request(
             self,
             messages: list[Message],
-            tools: list[BaseTool] | None = None
+            tools: list[Any] | None = None
     ) -> dict[str, Any]:
         """
-        生成LLM调用所需的输入
+        生成LLM调用所需的输入，包含对工具的格式转换
 
         Args:
             messages: 内置消息的列表
@@ -51,7 +56,8 @@ class BaseLLMClient(ABC):
     def generate(
             self,
             messages: list[Message],
-            tools: list[BaseTool]
+            tools: list[Any] | None = None,
+            model: str | None = None
     ) -> LLMResponse:
         """ 调用LLM """
         pass
