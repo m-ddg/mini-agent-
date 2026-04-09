@@ -6,6 +6,7 @@ from typing import Any, Callable, Literal
 class ToolResult(BaseModel):
     """ 记录工具的执行结果 """
 
+    id: str
     success: bool
     content: str = ''
     error: str | None = None
